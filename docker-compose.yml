@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # 1. High-Speed Memory Cache
+  flight-redis:
+    image: redis:7-alpine
+    container_name: flight_redis_container
+    ports:
+      - "6379:6379"
+    networks:
+      - flight-network
+
+  # 2. Relational Historical Database
+  flight-postgres:
+    image: postgres:15-alpine
+    container_name: my-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: flight_tracker
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - flight-network
+
+  # 3. Database Management GUI
+  flight-pgadmin:
+    image: dpage/pgadmin4
+    container_name: flight_pgadmin_container
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@tracker.com
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+    ports:
+      - "8080:80"
+    depends_on:
+      - flight-postgres
+    networks:
+      - flight-network
+
+volumes:
+  postgres_data:
+
+networks:
+  flight-network:
+    driver: bridge
